@@ -22,9 +22,22 @@ import (
 
 	"github.com/atotto/clipboard"
 	"github.com/manifoldco/promptui"
+	"github.com/spf13/viper"
 )
 
 func main() {
+	viper.SetDefault("SnippetsDir", filepath.Join(getConfigDir(), "snippets"))
+	viper.SetDefault("Editor", filepath.Join("nano"))
+
+	viper.SetConfigName("config")
+	viper.SetConfigType("yaml")
+	viper.AddConfigPath("./snipit")
+	viper.AddConfigPath(getConfigDir())
+	err := viper.ReadInConfig()
+	if err != nil {
+		panic(fmt.Errorf("error loading config: %w", err))
+	}
+
 	if len(os.Args) == 1 {
 		snippets, err := getSnippets()
 		if err != nil {
@@ -76,7 +89,7 @@ func main() {
 }
 
 func promptAction(snippetName string) {
-	dir := filepath.Join(getConfigDir(), "snippets")
+	dir := filepath.Join(viper.GetString("SnippetsDir"))
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
 		if err := os.MkdirAll(dir, 0755); err != nil {
 			fmt.Printf("Error creating snippets directory: %v\n", err)
@@ -165,7 +178,7 @@ func getConfigDir() string {
 }
 
 func getSnippets() ([]string, error) {
-	dir := filepath.Join(getConfigDir(), "snippets")
+	dir := filepath.Join(getConfigDir(), viper.GetString("SnippetsDir"))
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
 		if err := os.MkdirAll(dir, 0755); err != nil {
 			fmt.Printf("Error creating snippets directory: %v\n", err)
@@ -187,9 +200,10 @@ func getSnippets() ([]string, error) {
 }
 
 func openEditor(filePath string) {
-	editor := os.Getenv("EDITOR")
-	if editor == "" {
-		editor = "nano"
+	editor := viper.GetString("Editor")
+	envEditor := os.Getenv("EDITOR")
+	if editor == "nano" && envEditor != "" {
+		editor = envEditor
 	}
 
 	cmd := exec.Command(editor, filePath)
