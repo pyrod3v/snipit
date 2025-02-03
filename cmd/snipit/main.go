@@ -72,10 +72,20 @@ func main() {
 
 		promptAction(snippetName)
 	} else if os.Args[1] == "-h" || os.Args[1] == "--help" {
-		fmt.Println("Usage:")
-		fmt.Println("  snipit                      List and manage snippets")
-		fmt.Println("  snipit <snippet-name>       Create or manage a snippet")
-		fmt.Println("  snipit -h | --help          Show this help message")
+        fmt.Println("Usage:")
+        fmt.Println("  snipit                                List and manage snippets")
+    	fmt.Println("  snipit <snippet-name>                 Create or manage a snippet")
+    	fmt.Println("  snipit -c | --config <key> <value>    Show this help message")
+		fmt.Println("  snipit -h | --help                    Show this help message")
+    	os.Exit(0)
+    } else if os.Args[1] == "-c" || os.Args[1] == "--config" {
+        if len(os.Args) < 4 {
+        	fmt.Printf("Not enough arguments for %s", os.Args[1])
+        	fmt.Printf("Example: snipit --config Editor nano")
+    		os.Exit(1)
+		}
+		viper.Set(os.Args[2], os.Args[3])
+		viper.WriteConfig()
 		os.Exit(0)
 	} else {
 		snippetName := os.Args[1]
