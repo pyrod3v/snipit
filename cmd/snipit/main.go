@@ -26,8 +26,17 @@ import (
 )
 
 func main() {
+	configFile := filepath.Join(getConfigDir(), "config.yaml")
+	if _, err := os.Stat(configFile); err != nil && os.IsNotExist(err) {
+		_, err := os.Create(configFile)
+		if err != nil {
+			fmt.Printf("Error creating config file: %v\n", err)
+			os.Exit(1)
+		}
+	}
+
 	viper.SetDefault("SnippetsDir", filepath.Join(getConfigDir(), "snippets"))
-	viper.SetDefault("Editor", filepath.Join("nano"))
+	viper.SetDefault("Editor", "nano")
 
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
@@ -70,7 +79,7 @@ func main() {
 		os.Exit(0)
 	} else {
 		snippetName := os.Args[1]
-		dir := filepath.Join(getConfigDir(), "snippets")
+		dir := viper.GetString("SnippetsDir")
 		if _, err := os.Stat(dir); os.IsNotExist(err) {
 			if err := os.MkdirAll(dir, 0755); err != nil {
 				fmt.Printf("Error creating snippets directory: %v\n", err)
@@ -89,7 +98,7 @@ func main() {
 }
 
 func promptAction(snippetName string) {
-	dir := filepath.Join(viper.GetString("SnippetsDir"))
+	dir := viper.GetString("SnippetsDir")
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
 		if err := os.MkdirAll(dir, 0755); err != nil {
 			fmt.Printf("Error creating snippets directory: %v\n", err)
@@ -178,7 +187,7 @@ func getConfigDir() string {
 }
 
 func getSnippets() ([]string, error) {
-	dir := filepath.Join(getConfigDir(), viper.GetString("SnippetsDir"))
+	dir := filepath.Join(viper.GetString("SnippetsDir"))
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
 		if err := os.MkdirAll(dir, 0755); err != nil {
 			fmt.Printf("Error creating snippets directory: %v\n", err)
