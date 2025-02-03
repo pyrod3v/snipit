@@ -35,9 +35,6 @@ func main() {
 		}
 	}
 
-	viper.SetDefault("SnippetsDir", filepath.Join(getConfigDir(), "snippets"))
-	viper.SetDefault("Editor", "nano")
-
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath("./snipit")
@@ -46,6 +43,10 @@ func main() {
 	if err != nil {
 		panic(fmt.Errorf("error loading config: %w", err))
 	}
+
+	viper.SetDefault("SnippetsDir", filepath.Join(getConfigDir(), "snippets"))
+	viper.SetDefault("Editor", "nano")
+	viper.WriteConfig()
 
 	if len(os.Args) == 1 {
 		snippets, err := getSnippets()
