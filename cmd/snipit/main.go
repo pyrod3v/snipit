@@ -16,17 +16,22 @@ package main
 import (
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
-	"runtime"
 
-	"github.com/atotto/clipboard"
-	"github.com/manifoldco/promptui"
+	"github.com/pyrod3v/snipit/internal/app"
 	"github.com/spf13/viper"
+	"github.com/urfave/cli/v2"
 )
 
 func main() {
-	configFile := filepath.Join(getConfigDir(), "config.yaml")
+	if _, err := os.Stat(snipit.GetConfigDir()); os.IsNotExist(err) {
+		if err := os.MkdirAll(snipit.GetConfigDir(), 0755); err != nil {
+			fmt.Printf("Error creating config directory: %v\n", err)
+			os.Exit(1)
+		}
+	}
+
+	configFile := filepath.Join(snipit.GetConfigDir(), "config.yaml")
 	if _, err := os.Stat(configFile); err != nil && os.IsNotExist(err) {
 		_, err := os.Create(configFile)
 		if err != nil {
@@ -37,201 +42,129 @@ func main() {
 
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
-	viper.AddConfigPath("./snipit")
-	viper.AddConfigPath(getConfigDir())
-	err := viper.ReadInConfig()
-	if err != nil {
+	viper.AddConfigPath("./.snipit")
+	viper.AddConfigPath(snipit.GetConfigDir())
+	if err := viper.ReadInConfig(); err != nil {
 		panic(fmt.Errorf("error loading config: %w", err))
 	}
 
-	viper.SetDefault("SnippetsDir", filepath.Join(getConfigDir(), "snippets"))
+	viper.SetDefault("SnippetsDir", filepath.Join(snipit.GetConfigDir(), "snippets"))
 	viper.SetDefault("Editor", "nano")
 	viper.WriteConfig()
 
-	if len(os.Args) == 1 {
-		snippets, err := getSnippets()
-		if err != nil {
-			fmt.Printf("Error getting snippets: %v\n", err)
-			os.Exit(1)
-		}
+	snipit.EnsureSnippetsDir()
 
-		if len(snippets) == 0 {
-			fmt.Println("No snippets found.")
-			os.Exit(0)
-		}
+	app := &cli.App{
+		Name:  "snipit",
+		Usage: "An easy to use, interactive snippet manager",
+		Commands: []*cli.Command{
+			{
+				Name:    "run",
+				Aliases: []string{"r"},
+				Usage:   "Run the snippet with optional arguments",
+				Action: func(c *cli.Context) error {
+					if c.NArg() < 1 {
+						return cli.Exit("Missing snippet name for run", 1)
+					}
+					snippetName := c.Args().Get(0)
+					args := c.Args().Slice()[1:]
+					filePath := snipit.GetSnippetFilePath(snippetName)
+					if _, err := os.Stat(filePath); os.IsNotExist(err) {
+						return cli.Exit(fmt.Sprintf("Snippet %s does not exist.", snippetName), 1)
+					}
+					snipit.RunSnippet(snippetName, args)
+					return nil
+				},
+			},
+			{
+				Name:    "copy",
+				Aliases: []string{"c"},
+				Usage:   "Copy the snippet to the clipboard",
+				Action: func(c *cli.Context) error {
+					if c.NArg() < 1 {
+						return cli.Exit("Missing snippet name for copy", 1)
+					}
+					snippetName := c.Args().Get(0)
+					snipit.CopySnippet(snippetName)
+					return nil
+				},
+			},
+			{
+				Name:    "print",
+				Aliases: []string{"p"},
+				Usage:   "Print the snippet content",
+				Action: func(c *cli.Context) error {
+					if c.NArg() < 1 {
+						return cli.Exit("Missing snippet name for print", 1)
+					}
+					snippetName := c.Args().Get(0)
+					snipit.PrintSnippet(snippetName)
+					return nil
+				},
+			},
+			{
+				Name:    "edit",
+				Aliases: []string{"e"},
+				Usage:   "Edit or create a snippet",
+				Action: func(c *cli.Context) error {
+					if c.NArg() < 1 {
+						return cli.Exit("Missing snippet name for edit", 1)
+					}
+					snippetName := c.Args().Get(0)
+					snipit.EditSnippet(snippetName)
+					return nil
+				},
+			},
+			{
+				Name:    "delete",
+				Aliases: []string{"d"},
+				Usage:   "Delete a snippet",
+				Action: func(c *cli.Context) error {
+					if c.NArg() < 1 {
+						return cli.Exit("Missing snippet name for delete", 1)
+					}
+					snippetName := c.Args().Get(0)
+					snipit.DeleteSnippet(snippetName)
+					return nil
+				},
+			},
+			{
+				Name:  "config",
+				Usage: "Update configuration (key value)",
+				Action: func(c *cli.Context) error {
+					if c.NArg() < 2 {
+						return cli.Exit("Usage: snipit config <key> <value>", 1)
+					}
+					key := c.Args().Get(0)
+					value := c.Args().Get(1)
+					viper.Set(key, value)
+					viper.WriteConfig()
+					return nil
+				},
+			},
+		},
 
-		prompt := promptui.Select{
-			Label: "Select a snippet",
-			Items: snippets,
-		}
-
-		_, snippetName, err := prompt.Run()
-		if err != nil {
-			fmt.Println("Prompt cancelled by user.")
-			os.Exit(0)
-		}
-
-		promptAction(snippetName)
-	} else if os.Args[1] == "-h" || os.Args[1] == "--help" {
-        fmt.Println("Usage:")
-        fmt.Println("  snipit                                List and manage snippets")
-    	fmt.Println("  snipit <snippet-name>                 Create or manage a snippet")
-    	fmt.Println("  snipit -c | --config <key> <value>    Show this help message")
-		fmt.Println("  snipit -h | --help                    Show this help message")
-    	os.Exit(0)
-    } else if os.Args[1] == "-c" || os.Args[1] == "--config" {
-        if len(os.Args) < 4 {
-        	fmt.Printf("Not enough arguments for %s", os.Args[1])
-        	fmt.Printf("Example: snipit --config Editor nano")
-    		os.Exit(1)
-		}
-		viper.Set(os.Args[2], os.Args[3])
-		viper.WriteConfig()
-		os.Exit(0)
-	} else {
-		snippetName := os.Args[1]
-		dir := viper.GetString("SnippetsDir")
-		if _, err := os.Stat(dir); os.IsNotExist(err) {
-			if err := os.MkdirAll(dir, 0755); err != nil {
-				fmt.Printf("Error creating snippets directory: %v\n", err)
-				os.Exit(1)
+		// run in interactive mode if no command is provided
+		Action: func(c *cli.Context) error {
+			// if a snippet is provided, prompt an action for it
+			if len(os.Args) > 1 {
+				snippet := os.Args[1]
+				snippetPath := snipit.GetSnippetFilePath(snippet)
+				if _, err := os.Stat(snippetPath); os.IsNotExist(err) {
+					fmt.Printf("Creating new snippet: %s\n", snippet)
+					snipit.OpenEditor(snippetPath)
+				} else {
+					snipit.PromptAction(snippet)
+				}
+			} else {
+				snipit.InteractiveMode()
 			}
-		}
-		filePath := filepath.Join(dir, snippetName)
-
-		if _, err := os.Stat(filePath); os.IsNotExist(err) {
-			fmt.Printf("Creating new snippet: %s\n", snippetName)
-			openEditor(filePath)
-		} else {
-			promptAction(snippetName)
-		}
-	}
-}
-
-func promptAction(snippetName string) {
-	dir := viper.GetString("SnippetsDir")
-	if _, err := os.Stat(dir); os.IsNotExist(err) {
-		if err := os.MkdirAll(dir, 0755); err != nil {
-			fmt.Printf("Error creating snippets directory: %v\n", err)
-			os.Exit(1)
-		}
-	}
-	filePath := filepath.Join(dir, snippetName)
-
-	prompt := promptui.Select{
-		Label: "Choose an action",
-		Items: []string{"Run", "Print", "Copy", "Edit", "Delete"},
+			return nil
+		},
 	}
 
-	_, result, err := prompt.Run()
-	if err != nil {
-		fmt.Println("Prompt cancelled by user.")
-		return
-	}
-
-	switch result {
-	case "Run":
-		content, err := os.ReadFile(filePath)
-		if err != nil {
-			fmt.Printf("Error reading snippet: %v\n", err)
-			os.Exit(1)
-		}
-		if len(content) == 0 {
-			fmt.Printf("Snippet %v is empty!", snippetName)
-			os.Exit(1)
-		}
-
-		cmd := exec.Command("sh", "-c", string(content))
-		cmd.Stdin = os.Stdin
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		if err := cmd.Run(); err != nil {
-			fmt.Printf("Error executing %v: %v\n", snippetName, err)
-			os.Exit(1)
-		}
-	case "Copy":
-		content, err := os.ReadFile(filePath)
-		if err != nil {
-			fmt.Printf("Error reading snippet: %v\n", err)
-			os.Exit(1)
-		}
-		if len(content) == 0 {
-			fmt.Printf("Snippet %v is empty!", snippetName)
-			os.Exit(1)
-		}
-
-		if err := clipboard.WriteAll(string(content)); err != nil {
-			fmt.Printf("Error copying %v to clipboard: %v\n", snippetName, err)
-			os.Exit(1)
-		}
-		fmt.Println("Snippet copied to clipboard.")
-	case "Print":
-		content, err := os.ReadFile(filePath)
-		if err != nil {
-			fmt.Printf("Error reading snippet: %v\n", err)
-			os.Exit(1)
-		}
-		if len(content) == 0 {
-			fmt.Printf("Snippet %v is empty!", snippetName)
-			os.Exit(1)
-		}
-		fmt.Println(string(content))
-	case "Edit":
-		openEditor(filePath)
-	case "Delete":
-		if err := os.Remove(filePath); err != nil {
-			fmt.Printf("Error deleting snippet: %v\n", err)
-			os.Exit(1)
-		}
-		fmt.Println("Snippet deleted successfully.")
-	}
-}
-
-func getConfigDir() string {
-	var configDir string
-	if runtime.GOOS == "windows" {
-		configDir = os.Getenv("AppData")
-	} else {
-		configDir = filepath.Join(os.Getenv("HOME"), ".config")
-	}
-	return filepath.Join(configDir, "snipit")
-}
-
-func getSnippets() ([]string, error) {
-	dir := filepath.Join(viper.GetString("SnippetsDir"))
-	if _, err := os.Stat(dir); os.IsNotExist(err) {
-		if err := os.MkdirAll(dir, 0755); err != nil {
-			fmt.Printf("Error creating snippets directory: %v\n", err)
-			os.Exit(1)
-		}
-	}
-	files, err := os.ReadDir(dir)
-	if err != nil {
-		return nil, err
-	}
-
-	var snippets []string
-	for _, file := range files {
-		if !file.IsDir() {
-			snippets = append(snippets, file.Name())
-		}
-	}
-	return snippets, nil
-}
-
-func openEditor(filePath string) {
-	editor := viper.GetString("Editor")
-	envEditor := os.Getenv("EDITOR")
-	if editor == "nano" && envEditor != "" {
-		editor = envEditor
-	}
-
-	cmd := exec.Command(editor, filePath)
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		fmt.Printf("Error opening editor: %v\n", err)
+	if err := app.Run(os.Args); err != nil {
+		fmt.Println(err)
 		os.Exit(1)
 	}
 }
