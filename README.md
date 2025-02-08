@@ -21,6 +21,7 @@ The application's configuration is stored in `HOME/.snipit/config.yaml`
 You can specify the following config keys:
 - `Editor`: The editor to use when creating a new snippet. Defaults to your $EDITOR environment variable, or `nano` if it isn't set.
 - `SnippetsDir`: The directory to store the snippets in. Defaults to `HOME/.snipit/snippets`.
+
 You can modify config values by running `snipit -c <key> <value>` (Using `--config` instead of `-c` is supported too).  
 You can also have a directory-specific config in `./.snipit/config.yaml`.  
 
