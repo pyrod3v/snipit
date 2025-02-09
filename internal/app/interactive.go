@@ -15,9 +15,10 @@ package snipit
 
 import (
 	"fmt"
+	"log"
 	"os"
 
-	"github.com/manifoldco/promptui"
+	"github.com/charmbracelet/huh"
 )
 
 func InteractiveMode() {
@@ -31,33 +32,41 @@ func InteractiveMode() {
 		os.Exit(0)
 	}
 
-	prompt := promptui.Select{
-		Label: "Select a snippet",
-		Items: snippets,
-	}
+	var snippetName string
 
-	_, snippetName, err := prompt.Run()
-	if err != nil {
-		fmt.Println("Prompt cancelled by user.")
-		os.Exit(0)
+	form := huh.NewForm(
+		huh.NewGroup(
+			huh.NewSelect[string]().
+				Title("Select a snippet").
+				Options(huh.NewOptions(snippets...)...).	
+				Value(&snippetName),
+		),
+	)
+
+	if err := form.Run(); err != nil {
+		log.Fatalf("Form failed: %v\n", err)
 	}
 
 	PromptAction(snippetName)
 }
 
 func PromptAction(snippetName string) {
-	prompt := promptui.Select{
-		Label: "Choose an action",
-		Items: []string{"Run", "Print", "Copy", "Edit", "Delete"},
+	var action string
+
+	form := huh.NewForm(
+		huh.NewGroup(
+			huh.NewSelect[string]().
+				Title("Select a snippet").
+				Options(huh.NewOptions("Run", "Print", "Copy", "Edit", "Delete")...).	
+				Value(&action),
+		),
+	)
+
+	if err := form.Run(); err != nil {
+		log.Fatalf("Form failed: %v\n", err)
 	}
 
-	_, result, err := prompt.Run()
-	if err != nil {
-		fmt.Println("Prompt cancelled by user.")
-		return
-	}
-
-	switch result {
+	switch action {
 	case "Run":
 		RunSnippet(snippetName, nil)
 	case "Copy":
