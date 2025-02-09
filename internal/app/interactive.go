@@ -38,7 +38,7 @@ func InteractiveMode() {
 		huh.NewGroup(
 			huh.NewSelect[string]().
 				Title("Select a snippet").
-				Options(huh.NewOptions(snippets...)...).	
+				Options(huh.NewOptions(snippets...)...).
 				Value(&snippetName),
 		),
 	)
@@ -57,7 +57,7 @@ func PromptAction(snippetName string) {
 		huh.NewGroup(
 			huh.NewSelect[string]().
 				Title("Select a snippet").
-				Options(huh.NewOptions("Run", "Print", "Copy", "Edit", "Delete")...).	
+				Options(huh.NewOptions("Run", "Print", "Copy", "Edit", "Delete")...).
 				Value(&action),
 		),
 	)

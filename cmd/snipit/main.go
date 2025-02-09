@@ -129,16 +129,22 @@ func main() {
 				},
 			},
 			{
-				Name:  "config",
-				Usage: "Update configuration (key value)",
+				Name:    "config",
+				Aliases: []string{"cfg"},
+				Usage:   "Update or get a config value",
 				Action: func(c *cli.Context) error {
-					if c.NArg() < 2 {
-						return cli.Exit("Usage: snipit config <key> <value>", 1)
+					if c.NArg() == 0 {
+						for _, key := range viper.AllKeys() {
+							fmt.Printf("%v: %v\n", key, viper.Get(key))
+						}
+					} else if c.NArg() == 1 {
+						fmt.Println(viper.Get(c.Args().Get(0)))
+					} else {
+						key := c.Args().Get(0)
+						value := c.Args().Get(1)
+						viper.Set(key, value)
+						viper.WriteConfig()
 					}
-					key := c.Args().Get(0)
-					value := c.Args().Get(1)
-					viper.Set(key, value)
-					viper.WriteConfig()
 					return nil
 				},
 			},
