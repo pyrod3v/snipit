@@ -2,7 +2,7 @@
 An easy to use, interactive snippet management tool.
 
 ## Installing
-To install, simply run `go install github.com/pyrod3v/snipit/cmd/snipit@latest` or clone this repository and run `go install ./...`.
+To install, simply run `go install github.com/pyrod3v/snipit/cmd/snipit@latest` or download a release from the [Releases Tab](https://github.com/pyrod3v/snipit/releases).
 
 ## How to use
 Simply type `snipit` in your terminal and a menu with all your snippets will appear.  
