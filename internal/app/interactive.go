@@ -56,7 +56,7 @@ func PromptAction(snippetName string) {
 	form := huh.NewForm(
 		huh.NewGroup(
 			huh.NewSelect[string]().
-				Title("Select a snippet").
+				Title("Select an action").
 				Options(huh.NewOptions("Run", "Print", "Copy", "Edit", "Delete")...).
 				Value(&action),
 		),
