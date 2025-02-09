@@ -47,9 +47,6 @@ func GetConfigDir() string {
 
 func OpenEditor(filePath string) {
 	editor := viper.GetString("Editor")
-	if editor == "nano" && os.Getenv("EDITOR") != "" {
-		editor = os.Getenv("EDITOR")
-	}
 	cmd := exec.Command(editor, filePath)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout

@@ -50,6 +50,7 @@ func main() {
 
 	viper.SetDefault("SnippetsDir", filepath.Join(snipit.GetConfigDir(), "snippets"))
 	viper.SetDefault("Editor", "nano")
+	viper.BindEnv("EDITOR")
 	viper.WriteConfig()
 
 	snipit.EnsureSnippetsDir()
