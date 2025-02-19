@@ -65,7 +65,7 @@ func main() {
 				Usage:   "Run the snippet with optional arguments",
 				Action: func(c *cli.Context) error {
 					if c.NArg() < 1 {
-						return cli.Exit("Missing snippet name for run", 1)
+						snipit.InteractiveMode("run")
 					}
 					snippetName := c.Args().Get(0)
 					args := c.Args().Slice()[1:]
@@ -83,7 +83,7 @@ func main() {
 				Usage:   "Copy the snippet to the clipboard",
 				Action: func(c *cli.Context) error {
 					if c.NArg() < 1 {
-						return cli.Exit("Missing snippet name for copy", 1)
+						snipit.InteractiveMode("copy")
 					}
 					snippetName := c.Args().Get(0)
 					snipit.CopySnippet(snippetName)
@@ -96,7 +96,7 @@ func main() {
 				Usage:   "Print the snippet content",
 				Action: func(c *cli.Context) error {
 					if c.NArg() < 1 {
-						return cli.Exit("Missing snippet name for print", 1)
+						snipit.InteractiveMode("print")
 					}
 					snippetName := c.Args().Get(0)
 					snipit.PrintSnippet(snippetName)
@@ -109,7 +109,7 @@ func main() {
 				Usage:   "Edit or create a snippet",
 				Action: func(c *cli.Context) error {
 					if c.NArg() < 1 {
-						return cli.Exit("Missing snippet name for edit", 1)
+						snipit.InteractiveMode("edit")
 					}
 					snippetName := c.Args().Get(0)
 					snipit.EditSnippet(snippetName)
@@ -122,7 +122,7 @@ func main() {
 				Usage:   "Delete a snippet",
 				Action: func(c *cli.Context) error {
 					if c.NArg() < 1 {
-						return cli.Exit("Missing snippet name for delete", 1)
+						snipit.InteractiveMode("delete")
 					}
 					snippetName := c.Args().Get(0)
 					snipit.DeleteSnippet(snippetName)
@@ -164,7 +164,7 @@ func main() {
 					snipit.PromptAction(snippet)
 				}
 			} else {
-				snipit.InteractiveMode()
+				snipit.InteractiveMode("")
 			}
 			return nil
 		},

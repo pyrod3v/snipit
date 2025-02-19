@@ -21,7 +21,7 @@ import (
 	"github.com/charmbracelet/huh"
 )
 
-func InteractiveMode() {
+func InteractiveMode(action string) {
 	snippets, err := GetSnippets()
 	if err != nil {
 		fmt.Printf("Error getting snippets: %v\n", err)
@@ -47,7 +47,20 @@ func InteractiveMode() {
 		log.Fatalf("Form failed: %v\n", err)
 	}
 
-	PromptAction(snippetName)
+	switch action {
+	case "run":
+		RunSnippet(snippetName, nil)
+	case "copy":
+		CopySnippet(snippetName)
+	case "print":
+		PrintSnippet(snippetName)
+	case "delete":
+		DeleteSnippet(snippetName)
+	}
+
+	if action == "" {
+		PromptAction(snippetName)
+	}
 }
 
 func PromptAction(snippetName string) {
