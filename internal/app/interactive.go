@@ -27,12 +27,28 @@ func InteractiveMode(action string) {
 		fmt.Printf("Error getting snippets: %v\n", err)
 		os.Exit(1)
 	}
+
+	var snippetName string
+
 	if len(snippets) == 0 {
+		if action == "edit" {
+			form := huh.NewForm(
+				huh.NewGroup(
+					huh.NewInput().
+						Title("Enter your snippet's name.").
+						Value(&snippetName),
+				),
+			)
+
+			if err := form.Run(); err != nil {
+				log.Fatalf("Form failed: %v\n", err)
+			}
+
+			EditSnippet(snippetName)
+		}
 		fmt.Println("No snippets found.")
 		os.Exit(0)
 	}
-
-	var snippetName string
 
 	form := huh.NewForm(
 		huh.NewGroup(
@@ -54,6 +70,8 @@ func InteractiveMode(action string) {
 		CopySnippet(snippetName)
 	case "print":
 		PrintSnippet(snippetName)
+	case "edit":
+		EditSnippet(snippetName)
 	case "delete":
 		DeleteSnippet(snippetName)
 	}
