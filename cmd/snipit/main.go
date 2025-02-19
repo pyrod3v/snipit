@@ -66,6 +66,7 @@ func main() {
 				Action: func(c *cli.Context) error {
 					if c.NArg() < 1 {
 						snipit.InteractiveMode("run")
+						os.Exit(0)
 					}
 					snippetName := c.Args().Get(0)
 					args := c.Args().Slice()[1:]
@@ -84,6 +85,7 @@ func main() {
 				Action: func(c *cli.Context) error {
 					if c.NArg() < 1 {
 						snipit.InteractiveMode("copy")
+						os.Exit(0)
 					}
 					snippetName := c.Args().Get(0)
 					snipit.CopySnippet(snippetName)
@@ -97,6 +99,7 @@ func main() {
 				Action: func(c *cli.Context) error {
 					if c.NArg() < 1 {
 						snipit.InteractiveMode("print")
+						os.Exit(0)
 					}
 					snippetName := c.Args().Get(0)
 					snipit.PrintSnippet(snippetName)
@@ -110,6 +113,7 @@ func main() {
 				Action: func(c *cli.Context) error {
 					if c.NArg() < 1 {
 						snipit.InteractiveMode("edit")
+						os.Exit(0)
 					}
 					snippetName := c.Args().Get(0)
 					snipit.EditSnippet(snippetName)
@@ -123,6 +127,7 @@ func main() {
 				Action: func(c *cli.Context) error {
 					if c.NArg() < 1 {
 						snipit.InteractiveMode("delete")
+						os.Exit(0)
 					}
 					snippetName := c.Args().Get(0)
 					snipit.DeleteSnippet(snippetName)
