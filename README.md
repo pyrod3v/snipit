@@ -9,12 +9,14 @@ Simply type `snipit` in your terminal and a menu with all your snippets will app
 If you select one, it will open a menu where you can run, copy, print, edit or delete that snippet.  
 Running `snipit` with a parameter will try to open the management menu for that snippet. If the snippet doesn't exist, it will open your editor for you to create it.  
 Run the program with `-h` or `--help` to show the help message.  
-You can also use the following subcommands, followed by a snippet's name:
+You can also use the following subcommands:
 - `run`: Run the provided snippet. Additional parameters will be passed to the snippet.
 - `copy`: Copy the provided snippet.
 - `print`: Print the provided snippet.
 - `edit`: Edit the provided snippet.
 - `delete`: Delete the provided snippet.
+
+If no snippet is provided, it will ask you to select one.
 
 ## Configuration
 The application's configuration is stored in `HOME/.snipit/config.yaml`
