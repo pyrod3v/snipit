@@ -28,7 +28,7 @@ func main() {
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath("./.snipit")
 	viper.AddConfigPath(snipit.GetConfigDir())
-	
+
 	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
 			if _, err := os.Stat(snipit.GetConfigDir()); os.IsNotExist(err) {
