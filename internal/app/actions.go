@@ -15,10 +15,12 @@ package snipit
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 
 	"github.com/atotto/clipboard"
+	"github.com/charmbracelet/huh"
 )
 
 func RunSnippet(snippetName string, extraArgs []string) {
@@ -87,6 +89,25 @@ func EditSnippet(snippetName string) {
 
 func DeleteSnippet(snippetName string) {
 	filePath := GetSnippetFilePath(snippetName)
+	var delete bool
+
+	form := huh.NewForm(
+		huh.NewGroup(
+			huh.NewConfirm().
+				Title(fmt.Sprintf("Are you sure you want to delete %v?", snippetName)).
+				Value(&delete),
+		),
+	)
+
+	if err := form.Run(); err != nil {
+		log.Fatalf("Form failed: %v\n", err)
+	}
+
+	if !delete {
+		fmt.Println("Snippet deletion cancelled")
+		os.Exit(0)
+	}
+
 	if err := os.Remove(filePath); err != nil {
 		fmt.Printf("Error deleting snippet: %v\n", err)
 		os.Exit(1)

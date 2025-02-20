@@ -39,11 +39,11 @@ func InteractiveMode(action string) {
 						Value(&snippetName),
 				),
 			)
-	
+
 			if err := form.Run(); err != nil {
 				log.Fatalf("Form failed: %v\n", err)
 			}
-	
+
 			EditSnippet(snippetName)
 			os.Exit(0)
 		}
