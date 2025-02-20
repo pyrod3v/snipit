@@ -31,20 +31,24 @@ func InteractiveMode(action string) {
 	var snippetName string
 
 	if len(snippets) == 0 {
-		form := huh.NewForm(
-			huh.NewGroup(
-				huh.NewInput().
-					Title("Enter your snippet's name.").
-					Value(&snippetName),
-			),
-		)
-
-		if err := form.Run(); err != nil {
-			log.Fatalf("Form failed: %v\n", err)
+		if action == "" || action == "edit" {
+			form := huh.NewForm(
+				huh.NewGroup(
+					huh.NewInput().
+						Title("Enter your snippet's name.").
+						Value(&snippetName),
+				),
+			)
+	
+			if err := form.Run(); err != nil {
+				log.Fatalf("Form failed: %v\n", err)
+			}
+	
+			EditSnippet(snippetName)
+			os.Exit(0)
 		}
-
-		EditSnippet(snippetName)
-		os.Exit(0)
+		fmt.Println("Snippet list is empty!")
+		os.Exit(1)
 	}
 
 	form := huh.NewForm(
