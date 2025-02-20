@@ -24,28 +24,25 @@ import (
 )
 
 func main() {
-	if _, err := os.Stat(snipit.GetConfigDir()); os.IsNotExist(err) {
-		if err := os.MkdirAll(snipit.GetConfigDir(), 0755); err != nil {
-			fmt.Printf("Error creating config directory: %v\n", err)
-			os.Exit(1)
-		}
-	}
-
-	configFile := filepath.Join(snipit.GetConfigDir(), "config.yaml")
-	if _, err := os.Stat(configFile); err != nil && os.IsNotExist(err) {
-		_, err := os.Create(configFile)
-		if err != nil {
-			fmt.Printf("Error creating config file: %v\n", err)
-			os.Exit(1)
-		}
-	}
-
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath("./.snipit")
 	viper.AddConfigPath(snipit.GetConfigDir())
+	
 	if err := viper.ReadInConfig(); err != nil {
-		panic(fmt.Errorf("error loading config: %w", err))
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+			if _, err := os.Stat(snipit.GetConfigDir()); os.IsNotExist(err) {
+				if err := os.MkdirAll(snipit.GetConfigDir(), 0755); err != nil {
+					panic(fmt.Errorf("error creating config directory: %w", err))
+				}
+			}
+			_, err := os.Create(filepath.Join(snipit.GetConfigDir(), "config.yaml"))
+			if err != nil {
+				panic(fmt.Errorf("error creating config file: %w", err))
+			}
+		} else {
+			panic(fmt.Errorf("configuration error: %w", err))
+		}
 	}
 
 	viper.SetDefault("SnippetsDir", filepath.Join(snipit.GetConfigDir(), "snippets"))
