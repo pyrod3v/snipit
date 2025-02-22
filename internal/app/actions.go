@@ -108,7 +108,7 @@ func DeleteSnippet(snippetName string) {
 	}
 
 	if !delete {
-		fmt.Println("Snippet deletion cancelled")
+		fmt.Println("Snippet deletion cancelled.")
 		os.Exit(0)
 	}
 
