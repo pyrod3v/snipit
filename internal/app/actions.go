@@ -20,6 +20,7 @@ import (
 	"os/exec"
 
 	"github.com/atotto/clipboard"
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/huh"
 )
 
@@ -97,7 +98,10 @@ func DeleteSnippet(snippetName string) {
 				Title(fmt.Sprintf("Are you sure you want to delete %v?", snippetName)).
 				Value(&delete),
 		),
-	)
+	).WithKeyMap(func(k *huh.KeyMap) *huh.KeyMap {
+		k.Quit = key.NewBinding(key.WithKeys("q", "ctrl+c"))
+		return k
+	}(huh.NewDefaultKeyMap()))
 
 	if err := form.Run(); err != nil {
 		log.Fatalf("Form failed: %v\n", err)

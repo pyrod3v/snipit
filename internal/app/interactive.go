@@ -18,6 +18,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/huh"
 )
 
@@ -58,7 +59,10 @@ func InteractiveMode(action string) {
 				Options(huh.NewOptions(snippets...)...).
 				Value(&snippetName),
 		),
-	)
+	).WithKeyMap(func(k *huh.KeyMap) *huh.KeyMap {
+		k.Quit = key.NewBinding(key.WithKeys("q", "ctrl+c"))
+		return k
+	}(huh.NewDefaultKeyMap()))
 
 	if err := form.Run(); err != nil {
 		log.Fatalf("Form failed: %v\n", err)
@@ -92,7 +96,10 @@ func PromptAction(snippetName string) {
 				Options(huh.NewOptions("Run", "Print", "Copy", "Edit", "Delete")...).
 				Value(&action),
 		),
-	)
+	).WithKeyMap(func(k *huh.KeyMap) *huh.KeyMap {
+		k.Quit = key.NewBinding(key.WithKeys("q", "ctrl+c"))
+		return k
+	}(huh.NewDefaultKeyMap()))
 
 	if err := form.Run(); err != nil {
 		log.Fatalf("Form failed: %v\n", err)
